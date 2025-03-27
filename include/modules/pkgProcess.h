@@ -10,13 +10,13 @@
 struct Object{
     int global_id;
     std::vector<double> location;
-    std::map<int, cv::Mat> uav_img;
+    std::map<uint8_t, cv::Mat> uav_img;
 };
 
 struct OutPackage{
     time_t time;
     uint16_t time_slice;
-    std::map<int, std::vector<double>> uav_pose;
+    std::map<uint8_t, std::vector<double>> uav_pose;
     std::vector<Object> objs;
 };
 

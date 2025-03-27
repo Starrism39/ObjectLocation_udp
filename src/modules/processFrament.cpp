@@ -73,7 +73,7 @@ void FragmentReassembler::print_package_info(const OutPackage& pkg, const std::s
 
     std::cout << "\n无人机姿态:" << std::endl;
     for(const auto& [id, pose] : pkg.uav_pose) {
-        std::cout << "  UAV" << id << ": ";
+        std::cout << "  UAV" << static_cast<int>(id) << ": ";
         for(double val : pose) std::cout << val << " ";
         std::cout << std::endl;
     }
@@ -86,7 +86,7 @@ void FragmentReassembler::print_package_info(const OutPackage& pkg, const std::s
         
         std::cout << "  关联图像来源: ";
         for(const auto& [uav_id, img] : obj.uav_img) {
-            std::cout << "UAV" << uav_id << "(" << img.cols << "x"
+            std::cout << "UAV" << static_cast<int>(uav_id) << "(" << img.cols << "x"
                       << img.rows << ") ";
         }
         std::cout << std::endl;

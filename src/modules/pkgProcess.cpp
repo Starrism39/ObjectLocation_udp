@@ -94,7 +94,7 @@ bool deserializeOutPackage(const uint8_t* data, size_t length, OutPackage& pkg) 
     uint8_t poseCount = deserialize<uint8_t>(data);
     
     for (int i = 0; i < poseCount; ++i) {
-        int uavId = deserialize<uint8_t>(data);
+        uint8_t uavId = deserialize<uint8_t>(data);
         std::vector<double> pose(6); // yaw,pitch,roll,x,y,z
         for (auto& val : pose) {
             val = deserialize<double>(data);
@@ -116,7 +116,7 @@ bool deserializeOutPackage(const uint8_t* data, size_t length, OutPackage& pkg) 
         uint8_t imgCount = deserialize<uint8_t>(data);
         
         for (int i = 0; i < imgCount; ++i) {
-            int uavId = deserialize<uint8_t>(data);
+            uint8_t uavId = deserialize<uint8_t>(data);
             cv::Mat img = deserializeMat(data);
             obj.uav_img.emplace(uavId, std::move(img));
         }
