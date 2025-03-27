@@ -15,7 +15,8 @@ struct PacketHeader {
 
 struct ReassemblyBuffer {
     std::map<uint16_t, std::vector<uint8_t>> fragments;  // 分片存储
-    uint32_t total_size;                                  // 总数据大小
+    uint32_t expected_data_size;                                  // 预期总数据大小
+    uint16_t expected_total_frags;                      // 预期总包数
     time_t last_active;                                   // 最后活动时间
 };
 

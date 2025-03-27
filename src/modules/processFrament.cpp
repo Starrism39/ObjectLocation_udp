@@ -13,14 +13,47 @@ void FragmentReassembler::process_packet(const std::string& src_key,
 {
     // 初始化或更新缓冲区
     auto& buf = buffers_[src_key];
-    buf.total_size = header.data_size;
+    
+    // 初始化或验证元数据
+    if(buf.fragments.empty()) {
+        // 首个分片初始化元数据
+        buf.expected_total_frags = header.total_frags;
+        buf.expected_data_size = header.data_size;
+    } else {
+        // 验证后续分片元数据一致性
+        if(header.total_frags != buf.expected_total_frags || 
+           header.data_size != buf.expected_data_size) {
+            std::cerr << "元数据不匹配: " << src_key 
+                      << " 期望分片数:" << buf.expected_total_frags
+                      << " 当前分片数:" << header.total_frags << std::endl;
+            return;
+        }
+    }
+
+    // 验证分片号合法性
+    if(header.frag_num >= buf.expected_total_frags) {
+        std::cerr << "非法分片号: " << header.frag_num 
+                  << "/" << buf.expected_total_frags << std::endl;
+        return;
+    }
+
+    // 更新活动时间
     buf.last_active = time(nullptr);
 
     // 存储分片（自动去重）
     buf.fragments[header.frag_num].assign(payload, payload + payload_len);
 
-    // 检查是否完成重组
-    if(buf.fragments.size() == header.total_frags) {
+    // 严格连续性检查
+    bool all_received = true;
+    for(uint16_t i=0; i<buf.expected_total_frags; ++i) {
+        if(!buf.fragments.count(i)) {
+            all_received = false;
+            break;
+        }
+    }
+
+    // 完成重组处理
+    if(all_received) {
         assemble_and_process(src_key, buf);
         buffers_.erase(src_key);
     }
@@ -43,7 +76,7 @@ void FragmentReassembler::assemble_and_process(const std::string& src_key,
 {
     // 按顺序组装数据
     std::vector<uint8_t> full_data;
-    full_data.reserve(buf.total_size);
+    full_data.reserve(buf.expected_data_size);
 
     for(uint16_t i=0; i<buf.fragments.size(); ++i) {
         auto& frag = buf.fragments[i];
@@ -51,8 +84,8 @@ void FragmentReassembler::assemble_and_process(const std::string& src_key,
     }
 
     // 验证数据大小
-    if(full_data.size() != buf.total_size) {
-        std::cerr << "数据大小不匹配! 期望:" << buf.total_size
+    if(full_data.size() != buf.expected_data_size) {
+        std::cerr << "数据大小不匹配! 期望:" << buf.expected_data_size
                   << " 实际:" << full_data.size() << std::endl;
         return;
     }
