@@ -34,6 +34,9 @@ namespace ProtocolUtils {
     void serialize<uint32_t>(std::vector<uint8_t>& buffer, uint32_t value, size_t size);
 
     template <>
+    void serialize<int32_t>(std::vector<uint8_t>& buffer, int32_t value, size_t size);
+
+    template <>
     void serialize<double>(std::vector<uint8_t>& buffer, double value, size_t size);
 
     // 反序列化模板声明
@@ -45,6 +48,9 @@ namespace ProtocolUtils {
 
     template <>
     uint32_t deserialize<uint32_t>(const uint8_t*& data);
+
+    template <>
+    int32_t deserialize<int32_t>(const uint8_t*& data);
 
     template <>
     double deserialize<double>(const uint8_t*& data);

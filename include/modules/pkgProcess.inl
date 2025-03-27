@@ -27,6 +27,13 @@ inline void serialize<uint32_t>(std::vector<uint8_t>& buffer, uint32_t value, si
 }
 
 template <>
+inline void serialize<int32_t>(std::vector<uint8_t>& buffer, int32_t value, size_t /*size*/){
+    value = htonl(static_cast<uint32_t>(value));
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(&value);
+    buffer.insert(buffer.end(), bytes, bytes + sizeof(uint32_t));
+}
+
+template <>
 inline void serialize<double>(std::vector<uint8_t>& buffer, double value, size_t /*size*/) {
     uint64_t temp;
     static_assert(sizeof(double) == sizeof(uint64_t), "Size mismatch");
@@ -59,6 +66,14 @@ inline uint32_t deserialize<uint32_t>(const uint8_t*& data) {
     memcpy(&raw, data, sizeof(uint32_t));
     data += sizeof(uint32_t);
     return ntohl(raw);
+}
+
+template <>
+inline int32_t deserialize<int32_t>(const uint8_t*& data){
+    uint32_t raw;
+    memcpy(&raw, data, sizeof(uint32_t));
+    data += sizeof(uint32_t);
+    return static_cast<int32_t>(ntohl(raw));
 }
 
 template <>
