@@ -6,7 +6,7 @@
 #include <thread>
 
 #include "img/modules/imgProcess.h"
-#include "utils/sendFrament.hpp"
+#include "utils/sendFrament.h"
 
 
 cv::Mat generateTestImage() {
@@ -53,7 +53,7 @@ int main() {
     // 发送数据
     while(true){
         sendFragmented(server, buffer, 0x33CC55AA);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));  // 测试丢包率和实际使用时注释掉
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));  // 测试丢包率时注释掉
     }
     
     
