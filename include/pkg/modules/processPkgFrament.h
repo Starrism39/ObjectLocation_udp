@@ -4,7 +4,12 @@
 #include <string>
 #include <ctime>
 #include <cstdint>
-#include "modules/pkgProcess.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+#include "pkg/modules/pkgProcess.h"
 
 struct PacketHeader {
     uint32_t magic = 0xAA55CC33;

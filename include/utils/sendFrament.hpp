@@ -8,10 +8,11 @@ struct PacketHeader {
     uint16_t frag_num;
     uint32_t data_size;
 };
-void sendFragmented(UDPOperation& server, std::vector<uint8_t>& data) {
+void sendFragmented(UDPOperation& server, std::vector<uint8_t>& data, uint32_t magic) {
     constexpr size_t FRAG_SIZE = 1400; // 留出72字节给头部和其他元数据
     
     PacketHeader header;
+    header.magic = magic;
     header.total_frags = (data.size() + FRAG_SIZE - 1) / FRAG_SIZE;
     header.data_size = data.size();
 

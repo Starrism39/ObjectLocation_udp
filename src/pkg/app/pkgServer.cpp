@@ -4,8 +4,9 @@
 #include <unistd.h>
 #include <chrono>
 #include <thread>
-#include "modules/pkgProcess.h"
-#include "modules/sendFrament.hpp"
+
+#include "pkg/modules/pkgProcess.h"
+#include "utils/sendFrament.hpp"
 
 
 cv::Mat generateTestImage() {
@@ -60,7 +61,7 @@ int main() {
 
     // 发送数据
     while(true){
-        sendFragmented(server, buffer);
+        sendFragmented(server, buffer, 0xAA55CC33);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));  // 测试丢包率和实际使用时注释掉
     }
     

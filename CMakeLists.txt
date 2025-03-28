@@ -87,15 +87,5 @@ include_directories(
   ${COMMON_HEADER_DIRS}
 )
 
-aux_source_directory(${PROJECT_SOURCE_DIR}/src/modules/ DET_SRC_DIR)
-aux_source_directory(${PROJECT_SOURCE_DIR}/src/utils/ DET_SRC_DIR)
-
-add_executable(server server.cpp ${DET_SRC_DIR})
-target_link_libraries(server PRIVATE ${OpenCV_LIBS} Threads::Threads)
-set_target_properties(server PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/bin)
-
-add_executable(client client.cpp ${DET_SRC_DIR})
-target_link_libraries(client PRIVATE ${OpenCV_LIBS} Threads::Threads)
-set_target_properties(client PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}/bin)
+add_subdirectory(src/pkg/app)
+add_subdirectory(src/img/app)
