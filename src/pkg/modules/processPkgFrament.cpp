@@ -11,29 +11,42 @@ void FragmentReassembler::process_packet(const std::string& src_key,
                                          const uint8_t* payload, 
                                          size_t payload_len) 
 {
-    // 初始化或更新缓冲区
-    auto& buf = buffers_[src_key];
-    
-    // 初始化或验证元数据
-    if(buf.fragments.empty()) {
-        // 首个分片初始化元数据
-        buf.expected_total_frags = header.total_frags;
-        buf.expected_data_size = header.data_size;
-    } else {
-        // 验证后续分片元数据一致性
-        if(header.total_frags != buf.expected_total_frags || 
-           header.data_size != buf.expected_data_size) {
-            std::cerr << "元数据不匹配: " << src_key 
-                      << " 期望分片数:" << buf.expected_total_frags
-                      << " 当前分片数:" << header.total_frags << std::endl;
+    // 尝试获取或创建缓冲区
+    auto it = buffers_.find(src_key);
+    if (it == buffers_.end()) {
+
+        if (header.frag_num != 0) {
+            // 非首分片到达但无缓冲区，忽略（或记录警告）
+            std::cerr << "非首分片到达但无缓冲区: " << src_key << std::endl;
             return;
         }
+
+        // 新src_key，创建缓冲区并初始化元数据
+        ReassemblyBuffer new_buf;
+        new_buf.expected_total_frags = header.total_frags;
+        new_buf.expected_data_size = header.data_size;
+        new_buf.last_active = time(nullptr);
+        new_buf.fragments[header.frag_num].assign(payload, payload + payload_len);
+        buffers_[src_key] = new_buf;
+        return;
+    }
+
+    // 已有缓冲区，引用现有数据
+    auto& buf = it->second;
+
+    // 验证元数据一致性（非首分片时）
+    if (header.total_frags != buf.expected_total_frags || 
+        header.data_size != buf.expected_data_size) {
+        std::cerr << "元数据不匹配，清理缓冲区: " << src_key << std::endl;
+        buffers_.erase(it);  // 关键点：验证失败时清理
+        return;
     }
 
     // 验证分片号合法性
-    if(header.frag_num >= buf.expected_total_frags) {
-        std::cerr << "非法分片号: " << header.frag_num 
+    if (header.frag_num >= buf.expected_total_frags) {
+        std::cerr << "非法分片号，清理缓冲区: " << header.frag_num 
                   << "/" << buf.expected_total_frags << std::endl;
+        buffers_.erase(it);  // 关键点：非法分片号时清理
         return;
     }
 
@@ -43,20 +56,24 @@ void FragmentReassembler::process_packet(const std::string& src_key,
     // 存储分片（自动去重）
     buf.fragments[header.frag_num].assign(payload, payload + payload_len);
 
-    // 严格连续性检查
-    bool all_received = true;
-    for(uint16_t i=0; i<buf.expected_total_frags; ++i) {
-        if(!buf.fragments.count(i)) {
-            all_received = false;
-            break;
+    // 检查是否全部接收
+    if(header.frag_num == buf.expected_total_frags - 1){
+        bool all_received = true;
+        for (uint16_t i = 0; i < buf.expected_total_frags; ++i) {
+            if (!buf.fragments.count(i)) {
+                all_received = false;
+                buffers_.erase(it);
+                break;
+            }
+        }
+    
+        // 完成重组并清理
+        if (all_received) {
+            assemble_and_process(src_key, buf);
+            buffers_.erase(it);
         }
     }
 
-    // 完成重组处理
-    if(all_received) {
-        assemble_and_process(src_key, buf);
-        buffers_.erase(src_key);
-    }
 }
 
 void FragmentReassembler::cleanup_expired() {

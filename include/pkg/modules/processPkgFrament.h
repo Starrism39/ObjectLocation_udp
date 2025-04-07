@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <unordered_set>
 
 #include "pkg/modules/pkgProcess.h"
 
@@ -23,6 +24,7 @@ struct ReassemblyBuffer {
     uint32_t expected_data_size;                                  // 预期总数据大小
     uint16_t expected_total_frags;                      // 预期总包数
     time_t last_active;                                   // 最后活动时间
+    std::unordered_set<uint16_t> missing_frags;  // 跟踪缺失的分片号
 };
 
 std::string get_src_key(const sockaddr_in& addr);

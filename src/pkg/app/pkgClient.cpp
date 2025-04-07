@@ -81,7 +81,7 @@ void consumer_thread_func(ThreadSafeQueue<PacketData>& packet_queue,
             );
             
             // 定期清理过期缓冲区
-            if(time(nullptr) - last_clean > 5) {
+            if(time(nullptr) - last_clean > 1) {
                 reassembler.cleanup_expired();
                 last_clean = time(nullptr);
             }
